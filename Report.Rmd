@@ -47,19 +47,19 @@ A major development in the Frontier League’s evolution has been its adoption o
 ## Statcast Minor League Baseball
 Statcast, Major League Baseball's premier data-tracking technology, has become a cornerstone of modern baseball analytics. Originally introduced at the MLB level in 2015, Statcast has gradually expanded its reach into affiliated minor league baseball, providing a wealth of data on player performance across all levels of the minor league system. Since 2021, Statcast has been implemented in the Florida State League (FSL), a Single-A league comparable in talent level to the Frontier League. This expansion has made advanced metrics, such as pitch velocity, spin rate, exit velocity, and defensive positioning, readily available for analysis at lower levels of professional baseball.
 
-For this study, Statcast data from the Florida State League serves as a critical benchmark for evaluating Frontier League players. By leveraging this dataset, I can identify similarities and differences in player performance metrics across the two leagues. These insights enable the development of a multinomial logistic regression model that predicts the likelihood of Frontier League players advancing to higher levels of the affiliated minor league system or even Major League Baseball. The availability of Statcast data at the minor league level not only enhances the scope of this analysis but also highlights the growing importance of advanced analytics in evaluating and developing baseball talent at all levels.
+For this study, Statcast data from the Florida State League serves as a critical benchmark for evaluating Frontier League players. By leveraging this dataset, we can identify similarities and differences in player performance metrics across the two leagues. These insights enable the development of a multinomial logistic regression model that predicts the likelihood of Frontier League players advancing to higher levels of the affiliated minor league system or even Major League Baseball. The availability of Statcast data at the minor league level not only enhances the scope of this analysis but also highlights the growing importance of advanced analytics in evaluating and developing baseball talent at all levels.
 
 ## This Study
 This study explores the potential trajectories of Frontier League players by leveraging advanced player performance data collected through Yakkertech and publicly available Statcast data from the Florida State League. The primary objective is to determine the likelihood of Frontier League players reaching higher levels of affiliated professional baseball, such as Single-A, Double-A, Triple-A, or even Major League Baseball.
 
 Using multiple multinomial logistic regression models, this analysis integrates performance metrics such as exit velocity, launch angle, among others. These metrics are compared between Frontier League players and their counterparts in the Florida State League, a Single-A league with a comparable talent level. By aligning the two datasets, this study bridges the gap between independent and affiliated baseball, providing insights into how performance in the Frontier League translates to affiliated baseball.
 
-I use another multinomial logistic regression model to compare Frontier League players in 2023 and Frontier League players in 2024 to predict where 2024's players will end up next year.
+We use another multinomial logistic regression model to compare Frontier League players in 2023 and Frontier League players in 2024 to predict where 2024's players will end up next year.
 
 # Data Exploration and Visualization with 2023 Data
 
 ## Section 1: Data Cleaning
-To begin, I downloaded the CSV files from the OnePoint Shared Folder, which contained pitch-by-pitch data for the 2023 and 2024 Frontier League seasons. I then wrote a function `process_season` to process the season's worth of data, which I had downloaded locally into folders titled "2023" and "2024". `process_season` was able to connect to MySQL and write the data row by row into a SQL table while recognizing the headers. R is able to handle the large amounts of data I have (over 300,000 rows per season of over 100 columns), but it took a while to load, so I thought that working with SQL to select columns from the database would work best. Due to the fact that I are taking at-bats as independent events, the goal was to take the game-by-game pitch data and turn it into season-by-season pitch data. Thus, I do not care when a pitch occurred or who threw the pitch. I just care about each batter's outcomes. Thus, I have two SQL Tables, one for Frontier League 2023 pitches, and one for 2024 pitches. 
+To begin, we downloaded the CSV files from the OnePoint Shared Folder, which contained pitch-by-pitch data for the 2023 and 2024 Frontier League seasons. We then wrote a function `process_season` to process the season's worth of data, which we had downloaded locally into folders titled "2023" and "2024". `process_season` was able to connect to MySQL and write the data row by row into a SQL table while recognizing the headers. R is able to handle the large amounts of data we have (over 300,000 rows per season of over 100 columns), but it took a while to load, so we thought that working with SQL to select columns from the database would work best. Due to the fact that we are taking at-bats as independent events, the goal was to take the game-by-game pitch data and turn it into season-by-season pitch data. Thus, we do not care when a pitch occurred or who threw the pitch. We just care about each batter's outcomes. Thus, we have two SQL Tables, one for Frontier League 2023 pitches, and one for 2024 pitches. 
 
 Note about notation: 
 - ExitSpeed = Exit Velocity of a batted ball
@@ -73,11 +73,11 @@ Note about notation:
 - BB% = Walk Percentage of a batter
 
 ## Section 2: Is Direction a Good Predictor of Hits?
-The first thing I did was query to only have pitches that resulted in batted balls, but only batted balls that would be considered for expected statistics. So, fouls were not included. 
+The first thing we did was query to only have pitches that resulted in batted balls, but only batted balls that would be considered for expected statistics. So, fouls were not included. 
 
-Now that I had all batted balls, I wanted to create models to predict both whether a particular batted ball will be a hit and what type of hit for xBA and xSLG. While some research includes Direction (otherwise known as spray angle) as a feature, I will first use Leave-one-out cross validation to see if it is a good predictor of getting a single, double, triple, or home run in our model, a logistic regression model with a binary outcome (single or not, double or not, etc.)
+Now that we had all batted balls, we wanted to create models to predict both whether a particular batted ball will be a hit and what type of hit for xBA and xSLG. While some research includes Direction (otherwise known as spray angle) as a feature, we will first use Leave-one-out cross validation to see if it is a good predictor of getting a single, double, triple, or home run in our model, a logistic regression model with a binary outcome (single or not, double or not, etc.)
 
-I performed five-fold cross validation to see if log loss was significant decreased by adding Direction to the model.
+We performed five-fold cross validation to see if log loss was significant decreased by adding Direction to the model.
 
 \FloatBarrier
 \begin{figure}[H]
@@ -88,10 +88,10 @@ I performed five-fold cross validation to see if log loss was significant decrea
 \end{figure}
 \FloatBarrier
 
-Using this model, there was virtually no difference in log loss between models with and without Direction. This suggests that Direction was not a good predictor of hits. I will proceed with the models without Direction.
+Using this model, there was virtually no difference in log loss between models with and without Direction. This suggests that Direction was not a good predictor of hits. We will proceed with the models without Direction.
 
 ## Section 3: Checking our Model
-I then realized that because each logistic regression is operating separately, this could lead to a batted ball with probabilities of being a single, double, triple, and home run that sum to more than 1. I will fit a new multinomial logistic regression model to predict the type of hit for each batted ball. Our model converged as seen in the image.
+We then realized that because each logistic regression is operating separately, this could lead to a batted ball with probabilities of being a single, double, triple, and home run that sum to more than 1. We fit a new multinomial logistic regression model to predict the type of hit for each batted ball. Our model converged as seen in the image.
 
 \FloatBarrier
 \begin{figure}[H]
@@ -103,9 +103,9 @@ I then realized that because each logistic regression is operating separately, t
 \FloatBarrier
 
 
-Then, I predicted the probability that a batted ball would be a single, double, triple, or home run, and merged those batted balls back into our original dataset.
+Then, we predicted the probability that a batted ball would be a single, double, triple, or home run, and merged those batted balls back into our original dataset.
 
-I created graphs to check our model, of ExitSpeed versus xBA and xSLG, and Angle versus xBA and xSLG. I found that my model was a good fit for the data, as these graphs make sense.
+We created graphs to check our model, of ExitSpeed versus xBA and xSLG, and Angle versus xBA and xSLG. We found that my model was a good fit for the data, as these graphs make sense.
 
 
 \FloatBarrier
@@ -128,7 +128,7 @@ I created graphs to check our model, of ExitSpeed versus xBA and xSLG, and Angle
 
 
  
-In general, batting average increases as Exit Speed increases, with lots of variation below 90 MPH, which is when the ball is hit hard enough for it to matter; this is a definition that MLB Statcast uses, as OPS is significantly higher for hard hit balls than non-hard hit balls. However, because I are talking about all kinds of hits, there is significant variation below 90mph. A slow dribbler along the third base line could have a high probability for a hit, and so could a 110 MPH exit velocity rocket with an optimal launch angle. As for Angle, the expected batting averages are most variable between 0 and 50 degrees, which makes sense as those will generate the most diverse outcomes (usually to the outfield). All other angles have a more consistent expected batting average because on the low end of Angle, they will likely just be ground balls (single or not), and on the high end, they are almost all pop ups. 
+In general, batting average increases as Exit Speed increases, with lots of variation below 90 MPH, which is when the ball is hit hard enough for it to matter; this is a definition that MLB Statcast uses, as OPS is significantly higher for hard hit balls than non-hard hit balls. However, because we are talking about all kinds of hits, there is significant variation below 90mph. A slow dribbler along the third base line could have a high probability for a hit, and so could a 110 MPH exit velocity rocket with an optimal launch angle. As for Angle, the expected batting averages are most variable between 0 and 50 degrees, which makes sense as those will generate the most diverse outcomes (usually to the outfield). All other angles have a more consistent expected batting average because on the low end of Angle, they will likely just be ground balls (single or not), and on the high end, they are almost all pop ups. 
 
 Let's graph ExitSpeed and Angle vs. xSLG, because this will be an even better check on if our model is working. xSLG will be a better angle not just if our model is predicting hits, but if it is predicting offesnive output weighted by the number of bases each hit is worth.
 
@@ -158,9 +158,9 @@ For Angle, the expected slugging percentage is highest between 20 and 40 degrees
 
 ## Section 4: Getting Qualified Hitters
 
-There are multiple ways to qualify hitters based on the number of plate appearances they have, including the standard 3.1 plate appearances per game. However, due to the nature of the minor/independent leagues, where players are moved around a lot and often don't do a full season in one place, I used a more flexible approach. I defined a qualified hitter as someone who has at least 130 plate appearances in a season, which is the definition used for rookie status in the MLB.
+There are multiple ways to qualify hitters based on the number of plate appearances they have, including the standard 3.1 plate appearances per game. However, due to the nature of the minor/independent leagues, where players are moved around a lot and often don't do a full season in one place, we used a more flexible approach. We defined a qualified hitter as someone who has at least 130 plate appearances in a season, which is the definition used for rookie status in the MLB.
 
-I calculated the number of plate appearances for each batter in the 2023 season. 
+We calculated the number of plate appearances for each batter in the 2023 season. 
 
 \FloatBarrier
 \begin{figure}[H]
@@ -171,14 +171,14 @@ I calculated the number of plate appearances for each batter in the 2023 season.
 \end{figure}
 \FloatBarrier
 
-Defining when the end of a PA occurred using this pitch by pitch data was not easy, but I decided to define it by the occurrence of a PlayResult, which means that something happened on the field. It is not exact, but with 130 PAs of all of these players, it should be enough PAs to get a good idea of their expected statistics. Based on checks with Baseball Reference, each player was missing about 30 PAs of data, which shouldn't matter much. Some stadiums were worse than others in keeping track of players.
+Defining when the end of a PA occurred using this pitch by pitch data was not easy, but we decided to define it by the occurrence of a PlayResult, which means that something happened on the field. It is not exact, but with 130 PAs of all of these players, it should be enough PAs to get a good idea of their expected statistics. Based on checks with Baseball Reference, each player was missing about 30 PAs of data, which shouldn't matter much. Some stadiums were worse than others in keeping track of players.
 
-I now have a leaderboard of 147 players with at least 130 plate appearances in the 2023 Frontier League season. I used this list to filter out the data for our qualified hitters.
+We now have a leaderboard of 147 players with at least 130 plate appearances in the 2023 Frontier League season. We used this list to filter out the data for our qualified hitters.
 
-With a dataframe of pitches only with qualified hitters, I found each of those qualified hitter's xBA and xSLG. First, I only wanted to keep rows where there is a PlayResult. Then, for each batter, I used a combination of their xBA's, their strikeouts, walks, errors, and sacrifices to get their xBA. Remember that a sacrifice is not considered an at-bat, so I will need to filter those out.
+With a dataframe of pitches only with qualified hitters, we found each of those qualified hitter's xBA and xSLG. First, we only wanted to keep rows where there is a PlayResult. Then, for each batter, we used a combination of their xBA's, their strikeouts, walks, errors, and sacrifices to get their xBA. Remember that a sacrifice is not considered an at-bat, so we will need to filter those out.
 
 ## Section 5: Calculating Expected Statistics
-I then calculated expected statistics for each player in the 2023 season. For xBA, I found it by summing the probabilities they get a hit on each batted ball event and dividing by at-bats. I did this for xSLG as well, but I weighted each hit by the number of bases it was worth. I then calculated xOBP (by incoporating walks and dividing by Plate Appearances), xOPS (xOBP + xSLG).
+We then calculated expected statistics for each player in the 2023 season. For xBA, we found it by summing the probabilities they get a hit on each batted ball event and dividing by at-bats. We did this for xSLG as well, but we weighted each hit by the number of bases it was worth. We then calculated xOBP (by incoporating walks and dividing by Plate Appearances), xOPS (xOBP + xSLG).
 
 \FloatBarrier
 \begin{figure}[H]
@@ -192,13 +192,13 @@ I then calculated expected statistics for each player in the 2023 season. For xB
 This leaderboard by xOPS gives us a good indication of the overall top offensive performers in the Frontier League, as OPS is considered a fairly predictvie all-encompassing offensive statistic, and using expected values increases its predictability of offensive output.
 
 ## Section 6: 2023 Run Expectancy Matrix
-In order to obtain one of our most important offensive statistics, wOBA, which was a statistic that the Statcast data included for their minor league players, I needed to calculate the run value of each play. To do that, I went back to our pitch-by-pitch data. While Run Expectancy Matrices were typically based on base-out states (number of outs and number of men on), I did not have runner data for the Frontier League, and thus needed to attempt to calculate run value in different ways.
+In order to obtain one of our most important offensive statistics, wOBA, which was a statistic that the Statcast data included for their minor league players, we needed to calculate the run value of each play. To do that, we went back to our pitch-by-pitch data. While Run Expectancy Matrices were typically based on base-out states (number of outs and number of men on), we did not have runner data for the Frontier League, and thus needed to attempt to calculate run value in different ways.
 
 
 ### Run Value Method #1: Outs
-In our first method of run value determination, Method #1, instead of base-out states, I treated each play as having only an out state. I used the expected number of runs scored until the end of the inning from each out state to see how each play (Single, Double, Triple, Home Run, Walk, Strikeout) changed the expected number of runs scored. I then used this to calculate the average run value for each type of play.
+In our first method of run value determination, Method #1, instead of base-out states, we treated each play as having only an out state. We used the expected number of runs scored until the end of the inning from each out state to see how each play (Single, Double, Triple, Home Run, Walk, Strikeout) changed the expected number of runs scored. We then used this to calculate the average run value for each type of play.
 
-Using this method, I got the following run values for each type of play: 
+Using this method, we got the following run values for each type of play: 
 
 \FloatBarrier
 \begin{figure}[H]
@@ -219,12 +219,12 @@ Using this method, I got the following run values for each type of play:
 \FloatBarrier
 
 
-Walks had zero run value in this model, as rarely do walks act as batting runs in. Otherwise, the trends looked good. Home runs were worth the most, and outs the least. However, I will want to try a new model to make sure I account for the fact that walks generate runs in the long-term.
+Walks had zero run value in this model, as rarely do walks act as batting runs in. Otherwise, the trends looked good. Home runs were worth the most, and outs the least. However, we will want to try a new model to make sure we account for the fact that walks generate runs in the long-term.
 
 ### Run Value Method #2: Out-PlayResult States
-I then tried a revised approach where I calculate the average number of runs scored from that point until the end of the inning, grouped by Outs and the PlayResult.
+We then tried a revised approach where we calculate the average number of runs scored from that point until the end of the inning, grouped by Outs and the PlayResult.
 
-In this method, I grouped all plays by Outs and PlayResult, and saw how many runs were scored, on average, until the end of the inning, plus the number of runs scored on that play. This allowed us to give walks some positive run value, as they generate runs by the end of the inning. I then used this to calculate the average run value for each type of play.
+In this method, we grouped all plays by Outs and PlayResult, and saw how many runs were scored, on average, until the end of the inning, plus the number of runs scored on that play. This allowed us to give walks some positive run value, as they generate runs by the end of the inning. We then used this to calculate the average run value for each type of play.
 
 \FloatBarrier
 \begin{figure}[H]
@@ -235,15 +235,15 @@ In this method, I grouped all plays by Outs and PlayResult, and saw how many run
 \end{figure}
 \FloatBarrier
  
-I now had, for each PlayResult, a number that encapsulated both how many runs were scored on that play and how many runs were scored until the end of the inning. This is a much better way to calculate run value, as it gives walks a positive value, and also gives more weight to plays that score more runs. 
+We now had, for each PlayResult, a number that encapsulated both how many runs were scored on that play and how many runs were scored until the end of the inning. This is a much better way to calculate run value, as it gives walks a positive value, and also gives more weight to plays that score more runs. 
 
 The only issue with this method is that Strikeouts still had a positive run value, as even after strikeouts, runs could be scored.
 
-To remedy this, I will try Method #3.
+To remedy this, we will try Method #3.
 
 ### Method #3: Outs-PlayResult with Run Expectancy
 
-I then saw that the run value of a play is how many runs are scored on that play, plus the difference in run expectancy by our base-out state before and after the play, plus the number of runs scored until the end of the inning. This method should give us the most accurate run value for each play in theory.
+We then saw that the run value of a play is how many runs are scored on that play, plus the difference in run expectancy by our base-out state before and after the play, plus the number of runs scored until the end of the inning. This method should give us the most accurate run value for each play in theory.
 
 \FloatBarrier
 \begin{figure}[H]
@@ -254,20 +254,20 @@ I then saw that the run value of a play is how many runs are scored on that play
 \end{figure}
 \FloatBarrier
 
-This made the most sense, and Strikeouts now had zero run value (should be negative, but I needed to zero it out anyway later), so I moved forward using these run values. Walks had a positive value slightly less than singles, as expected.
+This made the most sense, and Strikeouts now had zero run value (should be negative, but we needed to zero it out anyway later), so we moved forward using these run values. Walks had a positive value slightly less than singles, as expected.
 
 ## Section 7: Calculating wOBA
-Now that I had the run value for each play, I could calculate the weights for wOBA. The first step to obtaining linear weights was to adjust all weights so that the run value of an Out/StrikeoutLooking/StrikeoutSwinging became 0. So, I substracted the value of an out from each play's run value.
+Now that we had the run value for each play, we could calculate the weights for wOBA. The first step to obtaining linear weights was to adjust all weights so that the run value of an Out/StrikeoutLooking/StrikeoutSwinging became 0. So, we substracted the value of an out from each play's run value.
 
 These linear weights were contained within the `df2_run_values` and `df3_run_values` dataframes. 
 
-In order to obtain the actual weights for our wOBA equation, I needed the average wOBA to equal the average OBP. I had to return to our Pitches dataframe to find the average OBP for all Frontier League batters, not just those who were qualified in 2023.
+In order to obtain the actual weights for our wOBA equation, we needed the average wOBA to equal the average OBP. We had to return to our Pitches dataframe to find the average OBP for all Frontier League batters, not just those who were qualified in 2023.
 
-According to the code, the average OBP for all Frontier League batters in 2023 was 0.3079113. I used our Pitch-by-Pitch data to determine wOBA weights according to our two methods of linear weights. I needed the total number of Walks, Singles, Doubles, Triples, and Home Runs, divided by the total number of plate appearances, to derive the linear weight for each play type.
+According to the code, the average OBP for all Frontier League batters in 2023 was 0.3079113. We used our Pitch-by-Pitch data to determine wOBA weights according to our two methods of linear weights. We needed the total number of Walks, Singles, Doubles, Triples, and Home Runs, divided by the total number of plate appearances, to derive the linear weight for each play type.
 
-Using Method #2, I obtained an average wOBA, based on unadjusted linear weights, of 0.2814665; and using Method #3, I obtained an average wOBA of 0.3501425.
+Using Method #2, we obtained an average wOBA, based on unadjusted linear weights, of 0.2814665; and using Method #3, we obtained an average wOBA of 0.3501425.
 
-I then took our run value dataframes and scaled them so that wOBA equaled OBP. Finally, I applied these weights to calculate wOBA for each qualified hitter in 2023.
+We then took our run value dataframes and scaled them so that wOBA equaled OBP. Finally, we applied these weights to calculate wOBA for each qualified hitter in 2023.
 
 \FloatBarrier
 \begin{figure}[H]
@@ -288,11 +288,11 @@ I then took our run value dataframes and scaled them so that wOBA equaled OBP. F
 \FloatBarrier
 
 
-Sanity Check: Our wOBA weights were about the same for the two methods. Because method #3 incorporated more information, I used those weights to calculate wOBA and xWOBA for each qualified hitter in 2023.
+Sanity Check: Our wOBA weights were about the same for the two methods. Because method #3 incorporated more information, we used those weights to calculate wOBA and xWOBA for each qualified hitter in 2023.
 
-I then calculated wOBA and xWOBA for each qualified hitter in 2023. An output of wOBA+ is included later in this paper.
+We then calculated wOBA and xWOBA for each qualified hitter in 2023. An output of wOBA+ is included later in this paper.
 
-This was the wOBA formula. Note that I assumed that no walks were intentional and that HBPs were the same as walks (in reality, their run values should be slightly different). 
+This was the wOBA formula. Note that we assumed that no walks were intentional and that HBPs were the same as walks (in reality, their run values should be slightly different). 
 
 \FloatBarrier
 \begin{figure}[H]
@@ -305,17 +305,17 @@ This was the wOBA formula. Note that I assumed that no walks were intentional an
 
 
 ## Section 8: Plus Statistics
-In order for our statistics to be more comparable across different leagues and years of the Frontier League, I calculated plus statistics for each qualified hitter. I calculated xwOBA+ and wOBA+ for each hitter, which will be the ratio of their wOBA or xwOBA to the league average wOBA or xwOBA. I did the same for xBA, xOBP, xSLG, xOPS, K% and BB%. I made a couple of assumptions here that should not hurt the study too badly and employed two methods, which I used for different models.
+In order for our statistics to be more comparable across different leagues and years of the Frontier League, we calculated plus statistics for each qualified hitter. We calculated xwOBA+ and wOBA+ for each hitter, which will be the ratio of their wOBA or xwOBA to the league average wOBA or xwOBA. We did the same for xBA, xOBP, xSLG, xOPS, K% and BB%. We made a couple of assumptions here that should not hurt the study too badly and employed two methods, which we used for different models.
 
-The first method: I disregarded the fact that Plus Statistics are compared against the league-average hitter and just used qualified hitters to get our "league average." I did this because I did not have Pitch by Pitch data for our Single A Statcast data, so I could not calculate league average statistics.
+The first method: We disregarded the fact that Plus Statistics are compared against the league-average hitter and just used qualified hitters to get our "league average." We did this because we did not have Pitch by Pitch data for our Single A Statcast data, so we could not calculate league average statistics.
 
-The second method: I used the average statistics of all qualified hitters in 2023 to calculate league average statistics. This was to be used in our comparison to 2024 Statcast hitters.
+The second method: We used the average statistics of all qualified hitters in 2023 to calculate league average statistics. This was to be used in our comparison to 2024 Statcast hitters.
 
-In both methods, I did not take into account Park Factor because it was rather hard to calculate for this particular pitch by pitch data. Most Plus Statistics take Park Factor into account on a game-by-game basis. 
+In both methods, we did not take into account Park Factor because it was rather hard to calculate for this particular pitch by pitch data. Most Plus Statistics take Park Factor into account on a game-by-game basis. 
 
 ### Method #1: Using Qualified Hitters
 
-First, I found the average xBA, xOBP, xOPS, K%, BB%, xWOBA, and xWOBA for all qualified hitters in 2023.
+First, we found the average xBA, xOBP, xOPS, K%, BB%, xWOBA, and xWOBA for all qualified hitters in 2023.
 
 \FloatBarrier
 \begin{figure}[H]
@@ -326,7 +326,7 @@ First, I found the average xBA, xOBP, xOPS, K%, BB%, xWOBA, and xWOBA for all qu
 \end{figure}
 \FloatBarrier
 
-Then, I added add the ratio of each qualified hitter's statistics to the league average statistics to the qualified hitters dataframe.
+Then, we added add the ratio of each qualified hitter's statistics to the league average statistics to the qualified hitters dataframe.
 
 \FloatBarrier
 \begin{figure}[H]
@@ -341,7 +341,7 @@ Our ranking of hitters did not change, but now we had numbers that compare hitte
 
 
 ### Method #2: Using All Hitters in 2023
-Then, I found the average xBA, xOBP, xSLG, xOPS, K%, BB%, xWOBA, and xWOBA for all batters in 2023.
+Then, we found the average xBA, xOBP, xSLG, xOPS, K%, BB%, xWOBA, and xWOBA for all batters in 2023.
 
 \FloatBarrier
 \begin{figure}[H]
@@ -364,10 +364,10 @@ We added the ratio of each qualified hitter's statistics to the league average s
 \FloatBarrier
 
 
-Methods 1 and 2 here got the same order of hitters, but the magnitude to which they were above average ws different. This was because the league average statistics were different in each method. I used Method 2 for our comparison to 2024 Statcast data, as it is more accurate, and this is the way Statcast calculated their Plus Statistics. wOBA+ was much higher when comparing to the average hitter than to hitters who spent played many games in the league this past season.
+Methods 1 and 2 here got the same order of hitters, but the magnitude to which they were above average ws different. This was because the league average statistics were different in each method. We used Method 2 for our comparison to 2024 Statcast data, as it is more accurate, and this is the way Statcast calculated their Plus Statistics. wOBA+ was much higher when comparing to the average hitter than to hitters who spent played many games in the league this past season.
 
 ## Section 8: Adding Hit Quality Variables
-I then added hit quality variables to our qualified hitters dataframe. In the end, I added columns for Average Exit Velocity, Hard Hit Percentage (Percentage of batted balls above 95MPH Exit Velocity), and Average Launch Angle to all of our dataframes and used them as predictors. Within the affiliated leagues, it is commonplace for poorly performing players to receive more attention because their exit velocity and launch angle are good, even if they struggle in games. So, I wanted to see if this was a valid predictor of promotions to higher leagues. 
+We then added hit quality variables to our qualified hitters dataframe. In the end, we added columns for Average Exit Velocity, Hard Hit Percentage (Percentage of batted balls above 95MPH Exit Velocity), and Average Launch Angle to all of our dataframes and used them as predictors. Within the affiliated leagues, it is commonplace for poorly performing players to receive more attention because their exit velocity and launch angle are good, even if they struggle in games. So, we wanted to see if this was a valid predictor of promotions to higher leagues. 
 
 ## Section 9: 2024 Frontier League Data
 This entire processing of 2023 was then repeated for 2024.
@@ -413,7 +413,7 @@ These graphs were just like 2023, and seem to have even less spread around the t
 \end{figure}
 \FloatBarrier
 
-- I had just 91 qualified hitters from 2024, as there was a lack of data.
+- We had just 91 qualified hitters from 2024, as there was a lack of data.
 
 \FloatBarrier
 \begin{figure}[H]
@@ -436,7 +436,7 @@ These graphs were just like 2023, and seem to have even less spread around the t
 \FloatBarrier
 
 - Run Expectancy Matrices for 2024
-Out states were about the same in 2024, which is a good sign that my code was correct. I just used Method 3 for our wOBA weights.
+Out states were about the same in 2024, which is a good sign that my code was correct. We just used Method 3 for our wOBA weights.
 
 \FloatBarrier
 \begin{figure}[H]
@@ -459,11 +459,11 @@ Runs until the end of the inning for each out state were about the same.
 \FloatBarrier
 
 - Calculating wOBA and xwOBA procedure the same, but new players.
-The average OBP for all Frontier League batters in 2024 was 0.3212346. I needed to get the total number of Walks, Singles, Doubles, Triples, and Home Runs, and divide by the total number of plate appearances to get the linear weight for each play type.
+The average OBP for all Frontier League batters in 2024 was 0.3212346. We needed to get the total number of Walks, Singles, Doubles, Triples, and Home Runs, and divide by the total number of plate appearances to get the linear weight for each play type.
 
-Using Method #3, I got an average unadjusted wOBA of 0.3515049.
+Using Method #3, we got an average unadjusted wOBA of 0.3515049.
 
-I then took our run value dataframes and scale so that wOBA is equal to OBP. I used these weights to calculate wOBA for each qualified hitter in 2023.
+We then took our run value dataframes and scale so that wOBA is equal to OBP. We used these weights to calculate wOBA for each qualified hitter in 2023.
 
 \FloatBarrier
 \begin{figure}[H]
@@ -485,7 +485,7 @@ These, combined with the value of a walk being 0.81072066, gave me a formula for
 \end{figure}
 \FloatBarrier
 
-And I got wOBA rankings of the following: 
+And we got wOBA rankings of the following: 
 
 \FloatBarrier
 \begin{figure}[H]
@@ -497,7 +497,7 @@ And I got wOBA rankings of the following:
 \FloatBarrier
 
 - New Plus Statistics for our 2024 players
-I calculated new average and plus statistics for our 2024 hitters as well.
+We calculated new average and plus statistics for our 2024 hitters as well.
 
 \FloatBarrier
 \begin{figure}[H]
@@ -542,7 +542,7 @@ I calculated new average and plus statistics for our 2024 hitters as well.
 Our tables look around the same as our data for 2023, which was a good sign.
 
 ## Section 10: Other Statistics to Include
-Because more and more of the data-driven baseball scene is not necessarily focused on results, but tapping into potential, I also wanted to include a few other statistics that are not included in the above calculations. These include hard hit percentage and launch angle. I got this data from our `pitches_data_2024_m1` dataframe.
+Because more and more of the data-driven baseball scene is not necessarily focused on results, but tapping into potential, we also wanted to include a few other statistics that are not included in the above calculations. These include hard hit percentage and launch angle. We got this data from our `pitches_data_2024_m1` dataframe.
 
 Here is an example dataframe of hard hit percentage and launch angle from 2024:
 
@@ -556,7 +556,7 @@ Here is an example dataframe of hard hit percentage and launch angle from 2024:
 \FloatBarrier
 
 ## Section 11: 2021 Statcast Data
-After obtaining Statcast Minor League data directly from the Statcast website (screenshot below), I was able to select the columns I wanted to use for Analysis1.R.
+After obtaining Statcast Minor League data directly from the Statcast website (screenshot below), we were able to select the columns we wanted to use for Analysis1.R.
 
 \FloatBarrier
 \begin{figure}[H]
@@ -568,16 +568,16 @@ After obtaining Statcast Minor League data directly from the Statcast website (s
 \FloatBarrier
 
 
-First, I changed column names to match the Frontier League data.
+First, we changed column names to match the Frontier League data.
 
-Once I had all of the statistics, I moved on to the comparison with the 2024 Statcast data. First, I saved all relevant dataframes as CSVs for use in subsequent projects.
+Once we had all of the statistics, we moved on to the comparison with the 2024 Statcast data. First, we saved all relevant dataframes as CSVs for use in subsequent projects.
 
-Because some teams stopped employing interns to set up their Yakkertech systems for each game, there was less data this season, and thus fewer hitters qualified for our leaderboard. I ended up with only 91 players who reached 130 PAs in our dataset.
+Because some teams stopped employing interns to set up their Yakkertech systems for each game, there was less data this season, and thus fewer hitters qualified for our leaderboard. We ended up with only 91 players who reached 130 PAs in our dataset.
 
 ## Section 12: Manual Data Entry
-I then imported my four CSV files (2023 Frontier League using Method 1 of Plus Statistics, 2024 Frontier League using Method 1 of Plus Statistics, 2021 Minor League Statcast using Method 2 of Plus Statistics, and 2024 Frontier League using Method 2 of Plus Statistics) into an Excel file and manually entered some data.
+We then imported my four CSV files (2023 Frontier League using Method 1 of Plus Statistics, 2024 Frontier League using Method 1 of Plus Statistics, 2021 Minor League Statcast using Method 2 of Plus Statistics, and 2024 Frontier League using Method 2 of Plus Statistics) into an Excel file and manually entered some data.
 
-Here's how I edited each file:
+Here's how we edited each file:
 - 2023 Frontier League using Method 1 of Plus Statistics: Added columns for "Age", "2024.Level"
 - 2024 Frontier League using Method 1 of Plus Statistics: Unchanged.
 - 2021 Minor League Statcast using Method 2 of Plus Statistics: Added columns for "Age", "2022.Level", "2023.Level", "2024.Level"
@@ -594,9 +594,9 @@ Here's how I edited each file:
 # Modeling/Analysis
 # Analysis1.R
 ## Predicting Leagues Reached by Frontier League Players
-In this section, I predicted probabilities that every qualified Frontier League hitter would reach higher levels based on 2024 Statcast data.
+In this section, we predicted probabilities that every qualified Frontier League hitter would reach higher levels based on 2024 Statcast data.
 
-I defined three predictor sets:
+We defined three predictor sets:
 
 - Traditional Statistics: OBP, SLG, K%, BB%
 - Expected Statistics: Hard Hit%, Average Launch Angle
@@ -604,13 +604,13 @@ I defined three predictor sets:
 
 ### A Summary of Analysis1.R:
 
-I began by loading the necessary libraries and reading data from Excel spreadsheets. I then standardized column names to ensure consistent formatting and calculated an average xwOBA value from Statcast data, using it to create xwOBA+. Next, I consolidated multiple player level categories (such as A+, AA, AAA, MLB, etc.) into a simplified set of categories, treating this as a target variable for modeling and converting it into a factor for classification.
+We began by loading the necessary libraries and reading data from Excel spreadsheets. We then standardized column names to ensure consistent formatting and calculated an average xwOBA value from Statcast data, using it to create xwOBA+. Next, we consolidated multiple player level categories (such as A+, AA, AAA, MLB, etc.) into a simplified set of categories, treating this as a target variable for modeling and converting it into a factor for classification.
 
-After preparing the data, I defined a custom function to train a multinomial logistic regression model given a set of predictors, calculate predicted probabilities, and compute a log loss value to assess model quality. I tested three distinct predictor sets—Traditional, Hit Quality, and Expected—by training a model for each and comparing their log losses.
+After preparing the data, we defined a custom function to train a multinomial logistic regression model given a set of predictors, calculate predicted probabilities, and compute a log loss value to assess model quality. We tested three distinct predictor sets—Traditional, Hit Quality, and Expected—by training a model for each and comparing their log losses.
 
-Having identified the best predictor set in each year (which, for all three years, turned out to be Traditional Statistics), I then used that model to predict probabilities for future seasons (2025, 2026, and 2027) for Frontier League players. I added these probabilities as new columns in the FL_2024 dataframe, thus providing insights into the players’ likelihood of advancing to particular levels (A+, AA, AAA, MLB, or Other) in subsequent seasons. Throughout this process, I maintained a consistent workflow of reading, cleaning, modeling, evaluating, and predicting, culminating in a dataset enriched with probability-based forecasts for player advancement.
+Having identified the best predictor set in each year (which, for all three years, turned out to be Traditional Statistics), we then used that model to predict probabilities for future seasons (2025, 2026, and 2027) for Frontier League players. We added these probabilities as new columns in the FL_2024 dataframe, thus providing insights into the players’ likelihood of advancing to particular levels (A+, AA, AAA, MLB, or Other) in subsequent seasons. Throughout this process, we maintained a consistent workflow of reading, cleaning, modeling, evaluating, and predicting, culminating in a dataset enriched with probability-based forecasts for player advancement.
 
-The Traditional statistics served as the best predictor set of future success for Statcast players, so I used that to map probabilities for the Frontier League players in 2024. I made seven graphs to visualize this.
+The Traditional statistics served as the best predictor set of future success for Statcast players, so we used that to map probabilities for the Frontier League players in 2024. We made seven graphs to visualize this.
 
 \FloatBarrier
 \begin{figure}[H]
@@ -672,15 +672,15 @@ The Traditional statistics served as the best predictor set of future success fo
 \FloatBarrier
 
 
-I see pretty clear relationships worth noting. Though it is not exactly linear, players with higher xWOBA+ (and thus, better offensive players) tend to make it to higher levels of affiliated baseball, even if the traditional predictor set was the most predictive. It is obviously harder for players to get to AAA and MLB, but it is not impossible, as there are plenty of players with projections higher than 10% to make it to those levels. The chances of players not playing affiliated baseball are also higher for players with lower xWOBA+, which makes sense. Our model is likely a good one, as it is not exactly related to talent level (as represented by xWOBA+), but contains variation likely representing the multitude of factors that are in play with a player moving up the ranks.
+We see pretty clear relationships worth noting. Though it is not exactly linear, players with higher xWOBA+ (and thus, better offensive players) tend to make it to higher levels of affiliated baseball, even if the traditional predictor set was the most predictive. It is obviously harder for players to get to AAA and MLB, but it is not impossible, as there are plenty of players with projections higher than 10% to make it to those levels. The chances of players not playing affiliated baseball are also higher for players with lower xWOBA+, which makes sense. Our model is likely a good one, as it is not exactly related to talent level (as represented by xWOBA+), but contains variation likely representing the multitude of factors that are in play with a player moving up the ranks.
 
 
 # Analysis2.R
 Goal: This analysis focused on predicting outcomes of 2024 Frontier League players based on similar players in the Frontier League in 2023.
 
-The first thing I did was manually create an age column of these player's ages.
+The first thing we did was manually create an age column of these player's ages.
 
-I then created the following table to see the highest level that the 2023 Frontier League players reached in 2024.
+We then created the following table to see the highest level that the 2023 Frontier League players reached in 2024.
 
 \FloatBarrier
 \begin{figure}[H]
@@ -690,9 +690,9 @@ I then created the following table to see the highest level that the 2023 Fronti
 \end{figure}
 \FloatBarrier
 
-As I can see, most players stayed in the Frontier League, although some made it to equivalent or higher levels of affiliated baseball. 40 players did not play professionally in 2024, and although a couple of those were season-ending injuries, it is not a good sign to see so many players just quit baseball after playing in the Frontier League. Age in our model should come in handy for this, because that should help to explain why older players tend to give up on playing professionally. 
+As we can see, most players stayed in the Frontier League, although some made it to equivalent or higher levels of affiliated baseball. 40 players did not play professionally in 2024, and although a couple of those were season-ending injuries, it is not a good sign to see so many players just quit baseball after playing in the Frontier League. Age in our model should come in handy for this, because that should help to explain why older players tend to give up on playing professionally. 
 
-Next, I made a graph of xWOBA+ and 2024 Level for our 2023 Frontier League Players. 
+Next, we made a graph of xWOBA+ and 2024 Level for our 2023 Frontier League Players. 
 
 \FloatBarrier
 \begin{figure}[H]
@@ -702,7 +702,7 @@ Next, I made a graph of xWOBA+ and 2024 Level for our 2023 Frontier League Playe
 \end{figure}
 \FloatBarrier
 
-I saw a couple of noticeable trends from this graph. 
+We saw a couple of noticeable trends from this graph. 
 
 - Our one player to make it to AA in 2024 after playing in the Frontier League in 2023 had the highest xWOBA+. This makes sense, as the jump from independent league baseball to AA is a great one, so a team taking the chance on an independent league player and putting them into AA requires great talent.
 
@@ -712,19 +712,19 @@ I saw a couple of noticeable trends from this graph.
 
 - The Pioneer League seems to get worse players than other leagues, and the Mexican League tends to get better players on average versus other leagues.
 
-Later in my analysis, I decided that "Hit Quality" could also be a useful set of predictors for these players. I added Average ExitSpeed and Angle (exit velocity and launch angle, respectively) to my model. 
+Later in my analysis, we decided that "Hit Quality" could also be a useful set of predictors for these players. We added Average ExitSpeed and Angle (exit velocity and launch angle, respectively) to my model. 
 
 ### A Summary of Analysis2.R:
 
-I began by loading the necessary libraries and reading the Frontier League (FL) hitters’ data from Excel files. After I examined the distribution of levels reached by 2023 players, I consolidated rare categories (A, A+, AA) into a single "Affiliated" category and plotted both the distribution of levels and their relationship to xWOBA+. I also merged additional hitting quality metrics—such as average exit velocity and launch angle—into both the 2023 and 2024 dataframes by linking them with pitch-level data from CSV files.
+We began by loading the necessary libraries and reading the Frontier League (FL) hitters’ data from Excel files. After we examined the distribution of levels reached by 2023 players, we consolidated rare categories (A, A+, AA) into a single "Affiliated" category and plotted both the distribution of levels and their relationship to xWOBA+. We also merged additional hitting quality metrics—such as average exit velocity and launch angle—into both the 2023 and 2024 dataframes by linking them with pitch-level data from CSV files.
 
-Once I had prepared the data, I converted the 2024.Level variable to a factor, created training and testing splits for the 2023 data, and defined sets of predictor variables: traditional stats, rate stats, expected stats, hit quality stats, and various combinations of these. I then fit multiple multinomial logistic regression models, each using a different predictor set, and evaluated their performance by predicting 2024 levels for the 2023 players. I assessed the performance of these models through confusion matrices.
+Once we had prepared the data, we converted the 2024.Level variable to a factor, created training and testing splits for the 2023 data, and defined sets of predictor variables: traditional stats, rate stats, expected stats, hit quality stats, and various combinations of these. We then fit multiple multinomial logistic regression models, each using a different predictor set, and evaluated their performance by predicting 2024 levels for the 2023 players. We assessed the performance of these models through confusion matrices.
 
-I chose to model with multinomial regression because the outcome variable was categorical with more than two levels. During this analysis, I built six distinct multinomial logistic regression models, each leveraging a different set of predictor variables. Model 1 focused solely on Age, providing a baseline for how a player’s age might influence their future level. Model 2 incorporated expected stats such as xwOBA+, aiming to capture underlying skill. Model 3 relied on traditional stats like on-base percentage and slugging percentage, gauging how conventional metrics might predict advancement. Model 4 used hit quality measures, including average exit velocity and launch angle, to determine whether the physical quality of contact offered a predictive edge. Model 5 examined rate stats, such as strikeout and walk percentages, to see if plate discipline metrics enhanced prediction. Finally, Model 6 combined traditional and rate stats, as those were the only two models that outperformed the no-information rate statistic. I trained, evaluated, and compared all of these models, which allowed me to make an informed decision on which predictor set best explained and predicted future player levels. I found that Model 6 had the best accuracy. However, none of the models were significantly better than the no-information rate, so I tried a seventh model.
+We chose to model with multinomial regression because the outcome variable was categorical with more than two levels. During this analysis, we built six distinct multinomial logistic regression models, each leveraging a different set of predictor variables. Model 1 focused solely on Age, providing a baseline for how a player’s age might influence their future level. Model 2 incorporated expected stats such as xwOBA+, aiming to capture underlying skill. Model 3 relied on traditional stats like on-base percentage and slugging percentage, gauging how conventional metrics might predict advancement. Model 4 used hit quality measures, including average exit velocity and launch angle, to determine whether the physical quality of contact offered a predictive edge. Model 5 examined rate stats, such as strikeout and walk percentages, to see if plate discipline metrics enhanced prediction. Finally, Model 6 combined traditional and rate stats, as those were the only two models that outperformed the no-information rate statistic. We trained, evaluated, and compared all of these models, which allowed me to make an informed decision on which predictor set best explained and predicted future player levels. We found that Model 6 had the best accuracy. However, none of the models were significantly better than the no-information rate, so we tried a seventh model.
 
-Next, I consolidated the outcomes further, grouping various affiliated and independent leagues into three simpler categories: "DNP," "Independent," and "Affiliated." I plotted the resulting distributions and xWOBA+ patterns again. Then I retrained and evaluated another model (Model 7, using Model 6’s variables) to check its predictive performance. Model 7 performed worse than Model 6, as this further grouping made the no-information rate model much stronger by comparison.
+Next, we consolidated the outcomes further, grouping various affiliated and independent leagues into three simpler categories: "DNP," "Independent," and "Affiliated." We plotted the resulting distributions and xWOBA+ patterns again. Then we retrained and evaluated another model (Model 7, using Model 6’s variables) to check its predictive performance. Model 7 performed worse than Model 6, as this further grouping made the no-information rate model much stronger by comparison.
 
-In the end, Model 6 had the highest accuracy and lowest p-value for being better than the no-information rate, so I decided to use it for predicting where our 2024 Frontier League players would be in 2025. 
+In the end, Model 6 had the highest accuracy and lowest p-value for being better than the no-information rate, so we decided to use it for predicting where our 2024 Frontier League players would be in 2025. 
 
 These are the outputs from those final dataframes:
 
@@ -761,19 +761,19 @@ There is no specific visualizations section, as visualizations were included thr
 
 # Conclusions and Recommendations
 ## Takeaway 1: While Single A and the Frontier League may have similar talent levels, Frontier League players do not get the same opportunities as their affiliated counterparts.
-As I can see by comparing probabilities from Analysis1.R and Analysis2.R, probabilities of reaching higher affiliated leagues are much higher for Single A players, even though talent levels are considered about equivalent.
+As we can see by comparing probabilities from Analysis1.R and Analysis2.R, probabilities of reaching higher affiliated leagues are much higher for Single A players, even though talent levels are considered about equivalent.
 
 One possible reason behind this: Often, choosing independent baseball is not because the affiliated leagues wouldn't be interested, but because equivalent minor league teams do not offer the same relaxation and, as has been described to me, "chill factor" as the Frontier League and other independent leagues. Likely stemming from the fact that the Frontier League has much less at stake in terms of "investing" in these players than affiliated teams do, this fact allows very good players to stay in the Frontier League or other independent leagues while their Single A equivalents rise through affiliated ranks towards the MLB. It should also be noted that often, Frontier League players were "blocked" by a glut of organizational talent at their position in the affiliated leagues, and the Frontier League is a way to continue to get professional reps and show off their talents.
 
-Another possible reason: This could also be due to a lack of data, or a lack of a desire to use the available data. Anecdotally, I have met people in the industry who have expressed disinterest with Frontier League Yakkertech data, simply because it not as as clean and requires much more manual validation than other data sources.
+Another possible reason: This could also be due to a lack of data, or a lack of a desire to use the available data. Anecdotally, we have met people in the industry who have expressed disinterest with Frontier League Yakkertech data, simply because it not as as clean and requires much more manual validation than other data sources.
 
 ## Takeaway 2: There is a wealth of talent in the Frontier League, and Major League Baseball clubs could optimize values by exploring their options. 
 
-As I can see in our analysis of similarly talented players in Single A and the Frontier League, there are Frontier League hitters who dominate their league and likely have the skills to have in higher affiliated baseball. I find plenty of players who have a 50% or higher chance of making it to the affiliated leagues in 2025 from our Statcast data comparison, so it would be smart of MLB clubs to look for talent in the Frontier League.
+As we can see in our analysis of similarly talented players in Single A and the Frontier League, there are Frontier League hitters who dominate their league and likely have the skills to have in higher affiliated baseball. We find plenty of players who have a 50% or higher chance of making it to the affiliated leagues in 2025 from our Statcast data comparison, so it would be smart of MLB clubs to look for talent in the Frontier League.
 
 ## Takeaway 3: Minor League promotions are still based on archaic principles that traditional statistics matter.
 
-As I saw with our log loss on the predictions for higher levels for the 2021 Statcast data and with the 2023 Frontier League data, traditional statistics (batting average, on-base percentage, slugging percentage) are still the best predictors of whether a player gets called up in future years. While there are many more factors at play on whether a player gets called up (monetary investment from a signing bonus, defense, sprint speed, no one "blocking" them at higher levels), this should not be the case with more predictive expected statistics, and undeniable hit quality statistics (exit velocity, launch angle) available for the Single A level.
+As we saw with our log loss on the predictions for higher levels for the 2021 Statcast data and with the 2023 Frontier League data, traditional statistics (batting average, on-base percentage, slugging percentage) are still the best predictors of whether a player gets called up in future years. While there are many more factors at play on whether a player gets called up (monetary investment from a signing bonus, defense, sprint speed, no one "blocking" them at higher levels), this should not be the case with more predictive expected statistics, and undeniable hit quality statistics (exit velocity, launch angle) available for the Single A level.
 
 One possible reason: This data is relatively new, and the usage of it by Major League ballclubs is likely going to take some time. 
 
@@ -781,7 +781,7 @@ Another possible reason: Some analytics departments are behind in their usage of
 
 ## Takeaway 4: More data is needed.
 
-As seen in Analysis2.R there is a need for more data to see what the true probabilities of Frontier League players are for making it to higher levels. This data is new and unstudied, and I will need years of MLB clubs evaluating Frontier League players to get a true gauge. Also, many Frontier League players do not move out of independent baseball, making it difficult to project the players that could using multinomial logistic regression.
+As seen in Analysis2.R there is a need for more data to see what the true probabilities of Frontier League players are for making it to higher levels. This data is new and unstudied, and we will need years of MLB clubs evaluating Frontier League players to get a true gauge. Also, many Frontier League players do not move out of independent baseball, making it difficult to project the players that could using multinomial logistic regression.
 
 # Acknowledgements
 I'd like to acknowledge my mentors at the New York Boulders, who encouraged me to use this data for this project.
